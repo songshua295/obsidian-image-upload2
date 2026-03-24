@@ -1,45 +1,45 @@
-name: Release Obsidian plugin
+name: Release Obsidian Plugin
 
 on:
   push:
+    # 只有当推送的 tag 符合 v* 格式时触发（例如 v1.0.1）
     tags:
-      - "*"
-
-env:
-  PLUGIN_NAME: obsidian-image-uploader
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Use Node.js 20.x
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
+          cache: 'npm'
 
-      - uses: pnpm/action-setup@v3
-        name: Install pnpm
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Plugin
+        run: npm run build
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
         with:
-          run_install: true
-
-      - name: Install dependencies
-        run: pnpm i
-
-      - name: Build plugin
-        run: |
-          pnpm build
-
-      - name: Create release
+          # 自动根据 tag 生成 Release 名称
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          # 指定要上传到 Release 的三个核心文件
+          files: |
+            main.js
+            manifest.json
+            styles.css
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
-
-          gh release create "$tag" \
-            --title="$tag" \
-            --generate-notes \
-            --draft \
-            main.js manifest.json
