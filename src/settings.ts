@@ -33,8 +33,8 @@ export class SettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Upload extensions")
-			.setDesc("File extensions to upload")
+			.setName("上传文件类型")
+			.setDesc("要上传的文件扩展名(用逗号分隔)")
 			.addText((text) =>
 				text
 					.setValue(this.plugin.settings.uploadExt)
@@ -44,8 +44,8 @@ export class SettingsTab extends PluginSettingTab {
 					}),
 			);
 		new Setting(containerEl)
-			.setName("Use system trash")
-			.setDesc('Use system trash or Obsidian ".trash" folder')
+			.setName("使用系统回收站")
+			.setDesc('上传后的文件是否移入系统回收站，否者移入 Obsidian 的 ".trash" 文件夹')
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.useSystemTrash)
@@ -103,7 +103,7 @@ export class SettingsTab extends PluginSettingTab {
 		);
 		this.addTextSetting(
 			"Key template",
-			"Template for the key(path) to use in S3. Template in {{}} will be replaced.\nAvailable variables: year, month, day, random2, random6, base62_of_ms_from_day_start, path, name, basename, extension",
+			"S3 目标路径模版，使用 {{}} 占位，会被实际值替换。\n可用变量: year, month, day, random2, random6, base62_of_ms_from_day_start, path, name, basename, extension, md5。md5 表示文件内容的 MD5 值。",
 			() => this.plugin.settings.s3.keyTemplate,
 			(value) => {
 				this.plugin.settings.s3.keyTemplate = value;

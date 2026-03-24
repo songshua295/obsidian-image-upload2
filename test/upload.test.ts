@@ -46,6 +46,20 @@ describe("generateKey", () => {
 		);
 		expect(key).toEqual("{{unknown}}");
 	});
+	test("should generate md5 hash from binary", async () => {
+		const binary = Buffer.from("test content");
+		const key = await generateKey(
+			binary.buffer.slice(binary.byteOffset, binary.byteOffset + binary.byteLength),
+			{
+				basename: "test",
+				extension: "png",
+				name: "test.png",
+				path: "test.png",
+			},
+			"{{md5}}.{{extension}}",
+		);
+		expect(key).toEqual("9a0364b9e99bb480dd25e1f0284c8555.png");
+	});
 });
 
 describe("upload", () => {

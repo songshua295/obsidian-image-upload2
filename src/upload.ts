@@ -4,6 +4,8 @@ import type { requestUrl, TFile } from "obsidian";
 import type { Settings } from "./settings";
 import mime from "mime";
 import { encode as encode62 } from "base62";
+import { createHash } from "crypto";
+import type { Buffer } from "node:buffer";
 import type { PTFile } from "./main";
 
 export type UploadCtx = {
@@ -33,13 +35,15 @@ type TemplateParams =
 	| "path"
 	| "name"
 	| "basename"
-	| "extension";
+	| "extension"
+	| "md5";
 
 export async function generateKey(
 	binary: ArrayBuffer,
 	tFile: PTFile,
 	keyTemplate: string,
 ): Promise<string> {
+	const md5Hash = computeMD5(binary);
 	const params: Record<TemplateParams, string> = {
 		year: new Date().getFullYear().toString(),
 		month: (new Date().getMonth() + 1).toString().padStart(2, "0"),
@@ -53,6 +57,7 @@ export async function generateKey(
 		name: tFile.name,
 		basename: tFile.basename,
 		extension: tFile.extension,
+		md5: md5Hash,
 	};
 
 	return template(keyTemplate, params);
@@ -62,6 +67,11 @@ function template(str: string, params: Record<string, string>): string {
 	return str.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
 		return params[key] || match;
 	});
+}
+
+function computeMD5(binary: ArrayBuffer): string {
+	const buffer = Buffer.from(binary);
+	return createHash("md5").update(buffer).digest("hex");
 }
 
 function randomStringGenerator(length: number) {
