@@ -26,7 +26,7 @@ jobs:
           run_install: true
 
       - name: Install dependencies
-        run: pnpm i
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build plugin
         run: |
@@ -42,4 +42,4 @@ jobs:
             --title="$tag" \
             --generate-notes \
             --draft \
-            main.js manifest.json
+            main.js manifest.json styles.css
