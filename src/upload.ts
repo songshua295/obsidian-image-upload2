@@ -9,115 +9,117 @@ import { Buffer } from "node:buffer";
 import type { PTFile } from "./main";
 
 export type UploadCtx = {
-	settings: Settings;
-	requestUrl: typeof requestUrl;
+    settings: Settings;
+    requestUrl: typeof requestUrl;
 };
 
 export async function upload(
-	binary: ArrayBuffer,
-	tFile: PTFile,
-	ctx: UploadCtx,
+    binary: ArrayBuffer,
+    tFile: PTFile,
+    ctx: UploadCtx,
 ): Promise<string> {
-	const key = await generateKey(binary, tFile, ctx.settings.s3.keyTemplate);
-	await s3Upload(binary, key, tFile.extension, ctx);
-	let pubUrl = ctx.settings.s3.publicUrl;
-	pubUrl = pubUrl.endsWith("/") ? pubUrl : `${pubUrl}/`;
-	return pubUrl + encodeURI(key);
+    const key = await generateKey(binary, tFile, ctx.settings.s3.keyTemplate);
+    await s3Upload(binary, key, tFile.extension, ctx);
+    let pubUrl = ctx.settings.s3.publicUrl;
+    // 确保 URL 以 / 结尾
+    pubUrl = pubUrl.endsWith("/") ? pubUrl : `${pubUrl}/`;
+    return pubUrl + encodeURI(key);
 }
 
 type TemplateParams =
-	| "year"
-	| "month"
-	| "day"
-	| "random2"
-	| "random6"
-	| "base62_of_ms_from_day_start"
-	| "path"
-	| "name"
-	| "basename"
-	| "extension"
-	| "md5";
+    | "year"
+    | "month"
+    | "day"
+    | "random2"
+    | "random6"
+    | "base62_of_ms_from_day_start"
+    | "path"
+    | "name"
+    | "basename"
+    | "extension"
+    | "md5";
 
 export async function generateKey(
-	binary: ArrayBuffer,
-	tFile: PTFile,
-	keyTemplate: string,
+    binary: ArrayBuffer,
+    tFile: PTFile,
+    keyTemplate: string,
 ): Promise<string> {
-	const md5Hash = computeMD5(binary);
-	const params: Record<TemplateParams, string> = {
-		year: new Date().getFullYear().toString(),
-		month: (new Date().getMonth() + 1).toString().padStart(2, "0"),
-		day: new Date().getDate().toString().padStart(2, "0"),
-		random2: randomStringGenerator(2),
-		random6: randomStringGenerator(6),
-		base62_of_ms_from_day_start: encode62(
-			Date.now() - new Date().setHours(0, 0, 0, 0),
-		),
-		path: tFile.path,
-		name: tFile.name,
-		basename: tFile.basename,
-		extension: tFile.extension,
-		md5: md5Hash,
-	};
+    const md5Hash = computeMD5(binary);
+    const now = new Date();
+    const params: Record<TemplateParams, string> = {
+        year: now.getFullYear().toString(),
+        month: (now.getMonth() + 1).toString().padStart(2, "0"),
+        day: now.getDate().toString().padStart(2, "0"),
+        random2: randomStringGenerator(2),
+        random6: randomStringGenerator(6),
+        base62_of_ms_from_day_start: encode62(
+            Date.now() - new Date().setHours(0, 0, 0, 0),
+        ),
+        path: tFile.path,
+        name: tFile.name,
+        basename: tFile.basename,
+        extension: tFile.extension,
+        md5: md5Hash,
+    };
 
-	return template(keyTemplate, params);
+    return template(keyTemplate, params);
 }
 
 function template(str: string, params: Record<string, string>): string {
-	return str.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
-		return params[key] || match;
-	});
+    return str.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
+        return params[key] || match;
+    });
 }
 
 function computeMD5(binary: ArrayBuffer): string {
-	const buffer = Buffer.from(binary);
-	return createHash("md5").update(buffer).digest("hex");
+    const buffer = Buffer.from(binary);
+    return createHash("md5").update(buffer).digest("hex");
 }
 
 function randomStringGenerator(length: number) {
-	const chars =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	let result = "";
-	for (let i = 0; i < length; i++) {
-		// use Math.random is OK here, as it's not for security purpose
-		result += chars.charAt(Math.floor(Math.random() * chars.length));
-	}
-	return result;
+    const chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
 }
 
 async function s3Upload(
-	file: ArrayBuffer | string,
-	key: string,
-	ext: string,
-	ctx: UploadCtx,
+    file: ArrayBuffer | string,
+    key: string,
+    ext: string,
+    ctx: UploadCtx,
 ) {
-	const config = ctx.settings.s3;
-	const client = new S3Client({
-		region: config.region,
-		forcePathStyle: config.forcePathStyle,
-		credentials: {
-			accessKeyId: config.accKeyId,
-			secretAccessKey: config.secretAccKey,
-		},
-		endpoint: config.endpoint,
-	});
+    const config = ctx.settings.s3;
+    const client = new S3Client({
+        region: config.region,
+        forcePathStyle: config.forcePathStyle,
+        credentials: {
+            accessKeyId: config.accKeyId,
+            secretAccessKey: config.secretAccKey,
+        },
+        endpoint: config.endpoint,
+    });
 
-	const command = new PutObjectCommand({
-		Bucket: config.bucket,
-		Key: key,
-	});
+    const command = new PutObjectCommand({
+        Bucket: config.bucket,
+        Key: key,
+    });
 
-	const url = await getSignedUrl(client, command);
+    const url = await getSignedUrl(client, command);
 
-	const resp = await ctx.requestUrl({
-		url,
-		method: "PUT",
-		body: file,
-		contentType: mime.getType(ext) || "application/octet-stream",
-		throw: false,
-	});
+    const resp = await ctx.requestUrl({
+        url,
+        method: "PUT",
+        body: file,
+        contentType: mime.getType(ext) || "application/octet-stream",
+        throw: false,
+    });
 
-	if (resp.status !== 200) {
-		throw new Error(`Failed to upload file: ${resp.status}`);
-	}
+    if (resp.status !== 200) {
+        // 这里的错误会被 main.ts 中的 try-catch 捕获并提示给用户
+        throw new Error(`文件上传失败，HTTP 状态码: ${resp.status}`);
+    }
 }
