@@ -1,5 +1,3 @@
-# see: https://docs.obsidian.md/Plugins/Releasing/Release+your+plugin+with+GitHub+Actions
-
 name: Release Obsidian plugin
 
 on:
@@ -7,31 +5,32 @@ on:
     tags:
       - "*"
 
+env:
+  PLUGIN_NAME: obsidian-image-uploader
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Use Node.js
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: "24.x"
+          node-version: 20
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        with:
+          run_install: true
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile  # lockfile 可能与 package.json 不一致，CI 强制模式会失败
+        run: pnpm i
 
       - name: Build plugin
         run: |
-          pnpm run check
-          pnpm run build
+          pnpm build
 
       - name: Create release
         env:
@@ -41,4 +40,6 @@ jobs:
 
           gh release create "$tag" \
             --title="$tag" \
-            main.js manifest.json styles.css
+            --generate-notes \
+            --draft \
+            main.js manifest.json
