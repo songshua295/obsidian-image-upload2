@@ -5,7 +5,7 @@ import type { Settings } from "./settings";
 import mime from "mime";
 import { encode as encode62 } from "base62";
 import { createHash } from "crypto";
-import type { Buffer } from "node:buffer";
+import { Buffer } from "node:buffer";
 import type { PTFile } from "./main";
 
 export type UploadCtx = {
