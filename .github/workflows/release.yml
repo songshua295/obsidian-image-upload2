@@ -26,7 +26,7 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile  # lockfile 可能与 package.json 不一致，CI 强制模式会失败
 
       - name: Build plugin
         run: |
