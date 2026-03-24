@@ -30,7 +30,7 @@ jobs:
 
       - name: Build plugin
         run: |
-          # pnpm run check
+          pnpm run check
           pnpm run build
 
       - name: Create release
@@ -41,5 +41,5 @@ jobs:
 
           gh release create "$tag" \
             --title="$tag" \
-            --draft \
+            --draft \ 
             main.js manifest.json styles.css
