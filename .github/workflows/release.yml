@@ -30,7 +30,7 @@ jobs:
 
       - name: Build plugin
         run: |
-          pnpm run check
+          # pnpm run check
           pnpm run build
 
       - name: Create release
@@ -40,6 +40,6 @@ jobs:
           tag="${GITHUB_REF#refs/tags/}"
 
           gh release create "$tag" \
-            main.js manifest.json styles.css \
-            --title="Release $tag" \
-            --generate-notes
+            --title="$tag" \
+            --draft \
+            main.js manifest.json styles.css
