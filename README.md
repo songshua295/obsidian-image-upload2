@@ -60,6 +60,26 @@ class CustomUploader {
 
 Then set the `Custom Uploader Class` option in the settings to `CustomUploader`.
 
+## Key template variables
+
+When using S3 uploader, you can configure `Key template` (path in bucket) with placeholders in `{{}}`.
+
+Available variables:
+
+- `year`
+- `month`
+- `day`
+- `random2`
+- `random6`
+- `base62_of_ms_from_day_start`
+- `path`
+- `name`
+- `basename`
+- `extension`
+- `md5` (new)
+
+`md5` is the MD5 hash of the file content.
+
 ## What the difference between this plugin and others?
 
 -   this plugin can remove the local images from the vault if they're exclusively used within that note (and this behaviour is optional). This is useful if you want to keep your vault clean.
