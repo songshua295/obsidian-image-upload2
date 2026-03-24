@@ -40,6 +40,6 @@ jobs:
           tag="${GITHUB_REF#refs/tags/}"
 
           gh release create "$tag" \
-            --title="$tag" \
-            # --draft \ 去除草稿模式，需要在github上点击一下
-            main.js manifest.json styles.css
+            main.js manifest.json styles.css \
+            --title="Release $tag" \
+            --generate-notes
