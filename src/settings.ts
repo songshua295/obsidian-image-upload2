@@ -107,7 +107,7 @@ export class SettingsTab extends PluginSettingTab {
         );
         this.addTextSetting(
             "存储路径模板 (Key Template)",
-            "S3 目标路径模板，支持使用 {{}} 占位符。\n常用变量: year, month, day, random2, random6, name, md5 (文件内容哈希) 等。",
+            "S3 目标路径模板，支持使用 {{}} 占位符。\n常用变量: year, month, day, random2, random6, name, sha256 (文件内容哈希) 等。",
             () => this.plugin.settings.s3.keyTemplate,
             (value) => {
                 this.plugin.settings.s3.keyTemplate = value;

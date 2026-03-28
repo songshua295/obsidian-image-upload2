@@ -46,7 +46,7 @@ describe("generateKey", () => {
 		);
 		expect(key).toEqual("{{unknown}}");
 	});
-	test("should generate md5 hash from binary", async () => {
+	test("should generate sha256 hash from binary", async () => {
 		const binary = Buffer.from("test content");
 		const key = await generateKey(
 			binary.buffer.slice(binary.byteOffset, binary.byteOffset + binary.byteLength),
@@ -56,9 +56,9 @@ describe("generateKey", () => {
 				name: "test.png",
 				path: "test.png",
 			},
-			"{{md5}}.{{extension}}",
+			"{{sha256}}.{{extension}}",
 		);
-		expect(key).toEqual("9a0364b9e99bb480dd25e1f0284c8555.png");
+		expect(key).toEqual("6ae8a75555209fd6c44157c0aed8016e763ff435a19cf186f76863140143ff72.png");
 	});
 });
 

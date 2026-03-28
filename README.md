@@ -76,9 +76,9 @@ Available variables:
 - `name`
 - `basename`
 - `extension`
-- `md5` (new)
+- `sha256` (new)
 
-`md5` is the MD5 hash of the file content.
+`sha256` is the SHA-256 hash of the file content.
 
 ## What the difference between this plugin and others?
 

@@ -37,14 +37,14 @@ type TemplateParams =
     | "name"
     | "basename"
     | "extension"
-    | "md5";
+    | "sha256";
 
 export async function generateKey(
     binary: ArrayBuffer,
     tFile: PTFile,
     keyTemplate: string,
 ): Promise<string> {
-    const md5Hash = computeMD5(binary);
+    const sha256Hash = await computeSHA256(binary);
     const now = new Date();
     const params: Record<TemplateParams, string> = {
         year: now.getFullYear().toString(),
@@ -59,7 +59,7 @@ export async function generateKey(
         name: tFile.name,
         basename: tFile.basename,
         extension: tFile.extension,
-        md5: md5Hash,
+        sha256: sha256Hash,
     };
 
     return template(keyTemplate, params);
@@ -71,9 +71,17 @@ function template(str: string, params: Record<string, string>): string {
     });
 }
 
-function computeMD5(binary: ArrayBuffer): string {
-    const buffer = Buffer.from(binary);
-    return createHash("md5").update(buffer).digest("hex");
+async function computeSHA256(binary: ArrayBuffer): Promise<string> {
+    try {
+        const hashBuffer = await crypto.subtle.digest('SHA-256', binary);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    } catch (error) {
+        console.warn('Web Crypto API不可用，回退到Node.js实现:', error);
+        const buffer = Buffer.from(binary);
+        return createHash("sha256").update(buffer).digest("hex");
+    }
 }
 
 function randomStringGenerator(length: number) {
