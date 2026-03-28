@@ -10,43 +10,53 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = process.argv[2] === "production";
 console.log('esbuild target config=', 'es2020');
+console.log('Production mode:', prod);
 
-const context = await esbuild.context({
-	banner: {
-		js: banner,
-	},
-	entryPoints: ["src/main.ts"],
-	bundle: true,
-	external: [
-		"obsidian",
-		"electron",
-		"@codemirror/autocomplete",
-		"@codemirror/collab",
-		"@codemirror/commands",
-		"@codemirror/language",
-		"@codemirror/lint",
-		"@codemirror/search",
-		"@codemirror/state",
-		"@codemirror/view",
-		"@lezer/common",
-		"@lezer/highlight",
-		"@lezer/lr",
-		...builtins,
-	],
-	format: "cjs",
-	target: "es2020",
-	logLevel: "info",
-	platform: "node",
-	sourcemap: prod ? false : "inline",
-	treeShaking: true,
-	outfile: "main.js",
-	minify: prod,
-	pure: prod ? ["console.log", "console.debug"] : [],
-});
+try {
+	const context = await esbuild.context({
+		banner: {
+			js: banner,
+		},
+		entryPoints: ["src/main.ts"],
+		bundle: true,
+		external: [
+			"obsidian",
+			"electron",
+			"@codemirror/autocomplete",
+			"@codemirror/collab",
+			"@codemirror/commands",
+			"@codemirror/language",
+			"@codemirror/lint",
+			"@codemirror/search",
+			"@codemirror/state",
+			"@codemirror/view",
+			"@lezer/common",
+			"@lezer/highlight",
+			"@lezer/lr",
+			...builtins,
+		],
+		format: "cjs",
+		target: "es2020",
+		logLevel: "info",
+		platform: "node",
+		sourcemap: prod ? false : "inline",
+		treeShaking: true,
+		outfile: "main.js",
+		minify: prod,
+		pure: prod ? ["console.log", "console.debug"] : [],
+	});
 
-if (prod) {
-	await context.rebuild();
-	process.exit(0);
-} else {
-	await context.watch();
+	if (prod) {
+		console.log('Starting rebuild...');
+		await context.rebuild();
+		console.log('Rebuild completed');
+		await context.dispose();
+		process.exit(0);
+	} else {
+		console.log('Starting watch mode...');
+		await context.watch();
+	}
+} catch (error) {
+	console.error('esbuild error:', error);
+	process.exit(1);
 }
