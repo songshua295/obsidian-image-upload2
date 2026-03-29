@@ -4,8 +4,7 @@ import type { requestUrl, TFile } from "obsidian";
 import type { Settings } from "./settings";
 import mime from "mime";
 import { encode as encode62 } from "base62";
-import { createHash } from "crypto";
-import { Buffer } from "node:buffer";
+
 import type { PTFile } from "./main";
 
 export type UploadCtx = {
@@ -72,16 +71,10 @@ function template(str: string, params: Record<string, string>): string {
 }
 
 async function computeSHA256(binary: ArrayBuffer): Promise<string> {
-    try {
-        const hashBuffer = await crypto.subtle.digest('SHA-256', binary);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        return hashHex;
-    } catch (error) {
-        console.warn('Web Crypto API不可用，回退到Node.js实现:', error);
-        const buffer = Buffer.from(binary);
-        return createHash("sha256").update(buffer).digest("hex");
-    }
+    const hashBuffer = await crypto.subtle.digest('SHA-256', binary);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
 }
 
 function randomStringGenerator(length: number) {

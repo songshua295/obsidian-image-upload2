@@ -1,5 +1,5 @@
 import esbuild from "esbuild";
-import process from "node:process";
+
 import builtins from "builtin-modules";
 
 const banner = `/*
@@ -38,7 +38,7 @@ try {
 		format: "cjs",
 		target: "es2020",
 		logLevel: "info",
-		platform: "node",
+		platform: "browser",
 		sourcemap: prod ? false : "inline",
 		treeShaking: true,
 		outfile: "main.js",
